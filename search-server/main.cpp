@@ -66,6 +66,12 @@ public:
         for (const string& word : words) {
             // для каждого слова заполняем пару id - TF
             documents_[word][document_id] += 1.0/doc_words;
+            /* Не совсем ясно, по-поводу инициализации новых элементов не нулём.
+            Чтобы избежать такой ошибки надо сперва делать проверку на наличиие и если элемента нет, создавать новый с нулём?
+            if (!documents_[word].count(document_id)) {
+                documents_[word][document_id] = 0;
+            }
+            documents_[word][document_id] += 1.0/doc_words;*/
         }
     }
 
@@ -86,6 +92,12 @@ public:
 private:
     map<string, map<int, double>> documents_;
     set<string> stop_words_;
+
+    struct QueryWord {
+        string query;
+        bool is_stop;
+        bool is_minus;
+    };
 
     struct Query {
         set<string> plus_words;
@@ -108,20 +120,35 @@ private:
         return words;
     }
 
+    QueryWord ParseQueryWord(string& word) const {
+        if (word[0] == '-') {
+            word = word.substr(1);
+            return {word, IsStopWord(word), true}; // минус слово
+        } else {
+            return {word, IsStopWord(word), false}; // плюс слово
+        }
+    }
 
     Query ParseQuery(const string& text) const {
         Query words;
-        for (string& word : SplitIntoWordsNoStop(text)) {
+
+        for (string& word : SplitIntoWords(text)) {
+            const QueryWord qr_word = ParseQueryWord(word);
 
             // слова с минусом в начале заносим в set minus, остальные в set plus
-            if (word[0] == '-') {
-                word = word.substr(1);
-                words.minus_words.insert(word);
-            } else {
-                words.plus_words.insert(word);
+            if (!qr_word.is_stop) {
+                if (!qr_word.is_minus) {
+                    words.plus_words.insert(qr_word.query);
+                } else {
+                    words.minus_words.insert(qr_word.query);
+                }
             }
         }
         return words;
+    }
+
+    double IdfCount(const string& word) const {
+        return log(document_count_ * 1.0 / documents_.at(word).size());
     }
 
     vector<Document> FindAllDocuments(const Query& query_words) const {
@@ -130,11 +157,11 @@ private:
         for (const string& plus_word : query_words.plus_words) {
             if (documents_.count(plus_word)) {
                 // расчет IDF: логарифм(всего документов / документов с искомым словом)
-                const double idf = log(document_count_ * 1.0 / documents_.at(plus_word).size());
+                const double idf = IdfCount(plus_word);
 
                 for (auto& [id, tf] : documents_.at(plus_word)) {
-                //расчет и заполнение релевантности
-                matched_doc[id] +=  idf*tf;
+                    //расчет и заполнение релевантности
+                    matched_doc[id] +=  idf*tf;
                 }
             }
         }
@@ -143,14 +170,14 @@ private:
         for (const string& minus_word : query_words.minus_words) {
             if (documents_.count(minus_word)) {
                 for (const auto& [id, tf] : documents_.at(minus_word)) {
-                matched_doc.erase(id);
+                    matched_doc.erase(id);
                 }
             }
         }
 
         vector<Document> matched_documents;
         for (const auto& [id, rlv] : matched_doc) {
-                matched_documents.push_back({id, rlv});
+            matched_documents.push_back({id, rlv});
         }
         return matched_documents;
     }
