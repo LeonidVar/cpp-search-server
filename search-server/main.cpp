@@ -241,43 +241,6 @@ private:
     }
 };
 
-/*/ ==================== для примера =========================
-
-void PrintDocument(const Document& document) {
-    cout << "{ "s
-        << "document_id = "s << document.id << ", "s
-        << "relevance = "s << document.relevance << ", "s
-        << "rating = "s << document.rating
-        << " }"s << endl;
-}
-int main() {
-    SearchServer search_server;
-    search_server.SetStopWords("и в на"s);
-    search_server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 });
-    search_server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-    search_server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
-    search_server.AddDocument(3, "ухоженный скворец евгений"s, DocumentStatus::BANNED, { 9 });
-    cout << "ACTUAL by default:"s << endl;
-    for (const Document& document : search_server.FindTopDocuments("пушистый ухоженный кот"s)) {
-        PrintDocument(document);
-    }
-    cout << "BANNED:"s << endl;
-    for (const Document& document : search_server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::BANNED)) {
-        PrintDocument(document);
-    }
-    cout << "Even ids:"s << endl;
-    for (const Document& document : search_server.FindTopDocuments("пушистый ухоженный кот"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; })) {
-        PrintDocument(document);
-    }
-    return 0;
-}
-*/
-
-
-/*
-   Подставьте сюда вашу реализацию макросов
-   ASSERT, ASSERT_EQUAL, ASSERT_EQUAL_HINT, ASSERT_HINT и RUN_TEST
-*/
 template <typename t, typename u>
 void AssertEqual(t def1, u def2, const string& t_str, const string& u_str,
     const string& file_name, const int line_num, const string& func_name, const string& hint) {
@@ -294,8 +257,8 @@ void AssertEqual(t def1, u def2, const string& t_str, const string& u_str,
         abort();
     }
 }
-#define ASSERT_EQUAL(expr1, expr2) AssertEqual((expr1), (expr2), #expr1, #expr2, __FILE__, __LINE__, __FUNCTION__, "") 
-#define ASSERT_EQUAL_HINT(expr1, expr2, hint) AssertEqual((expr1), (expr2), #expr1, #expr2, __FILE__, __LINE__, __FUNCTION__, (hint)) 
+#define ASSERT_EQUAL(expr1, expr2) AssertEqual((expr1), (expr2), #expr1, #expr2, __FILE__, __LINE__, __FUNCTION__, "")
+#define ASSERT_EQUAL_HINT(expr1, expr2, hint) AssertEqual((expr1), (expr2), #expr1, #expr2, __FILE__, __LINE__, __FUNCTION__, (hint))
 
 void AssertImpl(bool test, const string& t_str,
     const string& file_name, const int line_num, const string& func_name, const string& hint) {
@@ -308,8 +271,8 @@ void AssertImpl(bool test, const string& t_str,
         abort();
     }
 }
-#define ASSERT(expr) AssertImpl((expr), #expr, __FILE__, __LINE__, __FUNCTION__, "") 
-#define ASSERT_HINT(expr, hint) AssertImpl((expr), #expr, __FILE__, __LINE__, __FUNCTION__, (hint)) 
+#define ASSERT(expr) AssertImpl((expr), #expr, __FILE__, __LINE__, __FUNCTION__, "")
+#define ASSERT_HINT(expr, hint) AssertImpl((expr), #expr, __FILE__, __LINE__, __FUNCTION__, (hint))
 
 template <typename t>
 void RunTestImpl(t test, string str) {
@@ -396,7 +359,7 @@ void TestSortRelevance() {
     ASSERT_EQUAL(found_docs[2].id, 1);
     ASSERT_EQUAL(found_docs[3].id, 5);
     ASSERT_EQUAL(found_docs[0].rating, 3); // проверка правильности подсчета рейтинга для документа id=3
-    ASSERT_EQUAL(found_docs[1].rating, 10); // проверка правильности подсчета рейтинга для документа id=2 
+    ASSERT_EQUAL(found_docs[1].rating, 10); // проверка правильности подсчета рейтинга для документа id=2
     ASSERT((found_docs[1].relevance - log(5.0 / 4) * 2 / 5.0) < MAX_INACCURACY); // проверка подсчета релевантности
                                         // 5 - документов, 4 - со словом cat; 2 слова cat встречается, 5 слов всего)
 
