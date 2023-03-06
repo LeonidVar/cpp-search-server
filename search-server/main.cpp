@@ -241,6 +241,11 @@ private:
     }
 };
 
+
+/*
+   Подставьте сюда вашу реализацию макросов
+   ASSERT, ASSERT_EQUAL, ASSERT_EQUAL_HINT, ASSERT_HINT и RUN_TEST
+*/
 template <typename t, typename u>
 void AssertEqual(t def1, u def2, const string& t_str, const string& u_str,
     const string& file_name, const int line_num, const string& func_name, const string& hint) {
@@ -257,8 +262,8 @@ void AssertEqual(t def1, u def2, const string& t_str, const string& u_str,
         abort();
     }
 }
-#define ASSERT_EQUAL(expr1, expr2) AssertEqual((expr1), (expr2), #expr1, #expr2, __FILE__, __LINE__, __FUNCTION__, "")
-#define ASSERT_EQUAL_HINT(expr1, expr2, hint) AssertEqual((expr1), (expr2), #expr1, #expr2, __FILE__, __LINE__, __FUNCTION__, (hint))
+#define ASSERT_EQUAL(expr1, expr2) AssertEqual((expr1), (expr2), #expr1, #expr2, __FILE__, __LINE__, __FUNCTION__, "") 
+#define ASSERT_EQUAL_HINT(expr1, expr2, hint) AssertEqual((expr1), (expr2), #expr1, #expr2, __FILE__, __LINE__, __FUNCTION__, (hint)) 
 
 void AssertImpl(bool test, const string& t_str,
     const string& file_name, const int line_num, const string& func_name, const string& hint) {
@@ -271,8 +276,8 @@ void AssertImpl(bool test, const string& t_str,
         abort();
     }
 }
-#define ASSERT(expr) AssertImpl((expr), #expr, __FILE__, __LINE__, __FUNCTION__, "")
-#define ASSERT_HINT(expr, hint) AssertImpl((expr), #expr, __FILE__, __LINE__, __FUNCTION__, (hint))
+#define ASSERT(expr) AssertImpl((expr), #expr, __FILE__, __LINE__, __FUNCTION__, "") 
+#define ASSERT_HINT(expr, hint) AssertImpl((expr), #expr, __FILE__, __LINE__, __FUNCTION__, (hint)) 
 
 template <typename t>
 void RunTestImpl(t test, string str) {
@@ -282,6 +287,17 @@ void RunTestImpl(t test, string str) {
 #define RUN_TEST(func)  RunTestImpl(func, #func);
 
 // -------- Начало модульных тестов поисковой системы ----------
+void TestAddDocument() {
+    SearchServer server;
+    server.AddDocument(1, "Tirumala limniace is a large butterfly"s, DocumentStatus::ACTUAL, { 1 });
+    server.AddDocument(2, "The upper side of the wing"s, DocumentStatus::ACTUAL, { 10 });
+    server.AddDocument(3, "At the base of cells 2"s, DocumentStatus::ACTUAL, { 1, 2, 3, 4, 5 });
+    server.AddDocument(4, ""s, DocumentStatus::ACTUAL, { 9, 1 });
+    server.AddDocument(5, "top"s, DocumentStatus::ACTUAL, { });
+    server.AddDocument(6, "top of the abdomen is dark"s, DocumentStatus::ACTUAL, { 0 });
+
+    ASSERT_EQUAL(server.GetDocumentCount(), 6);
+}
 
 // Тест проверяет, что поисковая система исключает стоп-слова при добавлении документов
 void TestExcludeStopWordsFromAddedDocumentContent() {
@@ -353,26 +369,56 @@ void TestSortRelevance() {
 
     const auto found_docs = server.FindTopDocuments("cat"s);
 
-    //верный порядок сортировки: 3-2-1-5
+
+    //проверка убывания релевантности в выдачи
+    ASSERT_HINT(found_docs[0].relevance >= found_docs[1].relevance &&
+        found_docs[1].relevance >= found_docs[2].relevance &&
+        found_docs[2].relevance >= found_docs[3].relevance, "Documents must be sorts in relevance decreasing order"s);
+    
+    //проверка соответсвия сортировки и id документа; верный порядок сортировки: 3-2-1-5
     ASSERT_EQUAL(found_docs[0].id, 3);
     ASSERT_EQUAL(found_docs[1].id, 2);
     ASSERT_EQUAL(found_docs[2].id, 1);
     ASSERT_EQUAL(found_docs[3].id, 5);
-    ASSERT_EQUAL(found_docs[0].rating, 3); // проверка правильности подсчета рейтинга для документа id=3
-    ASSERT_EQUAL(found_docs[1].rating, 10); // проверка правильности подсчета рейтинга для документа id=2
-    ASSERT((found_docs[1].relevance - log(5.0 / 4) * 2 / 5.0) < MAX_INACCURACY); // проверка подсчета релевантности
-                                        // 5 - документов, 4 - со словом cat; 2 слова cat встречается, 5 слов всего)
+
 
     const auto found_docs2 = server.FindTopDocuments("apple garden map street"s);
     //проверка нахождения всех слов из поискового запроса: 4 найденных уникальных слова в документе id=4 дадут релевантность log(5):
     //для каждого слова idf = log(5)/1, tf = 1/4
-    ASSERT_HINT(found_docs2[0].relevance - log(5) < MAX_INACCURACY, "All words from the query must be found");
+    ASSERT_HINT(abs(found_docs2[0].relevance - log(5)) < MAX_INACCURACY, "All words from the query must be found");
     ASSERT_EQUAL(found_docs2[0].rating, 5);
 
 
 }
 
-void TestPredicatStatus() {
+void TestRatingAndRelevanceCount() {
+    SearchServer server;
+    server.AddDocument(1, "cat cat cat cat cat"s, DocumentStatus::ACTUAL, { -1 });
+    server.AddDocument(2, "blue cat cat cat cat"s, DocumentStatus::ACTUAL, { 12 });
+    server.AddDocument(3, "monkey red cat playing cat cat"s, DocumentStatus::ACTUAL, { 1, 2, 3, 4, 8 });
+    server.AddDocument(4, "cat garden cat map"s, DocumentStatus::ACTUAL, { -9, -1 });
+    server.AddDocument(5, "truck driving by a cat"s, DocumentStatus::ACTUAL, { 10, -2, -2, -6 });
+    server.AddDocument(6, "oak forest"s, DocumentStatus::ACTUAL, { 2, 6 });
+
+    const auto found_docs = server.FindTopDocuments("cat"s);
+
+    //calculated ratings for found documents
+    vector<int> test_rating{ -1, 12, 3, -5, 0 };
+
+    for (int i = 0; i < 5; ++i) {
+        ASSERT_EQUAL_HINT(found_docs[i].rating, test_rating[i], "i = " + to_string(i));
+    }
+
+    //calculated relevences for found documents
+    vector<double> test_rlv{ 0.182321557, 0.145857245, 0.091160778, 0.091160778, 0.036464311 };
+
+    for (int i = 0; i < 5; ++i) {
+        ASSERT(abs(found_docs[i].relevance - test_rlv[i]) < MAX_INACCURACY);
+    }
+
+}
+
+void TestPredicateStatus() {
     SearchServer server;
     server.AddDocument(0, "cat in the big city"s, DocumentStatus::ACTUAL, { 9, 6 });
     server.AddDocument(1, "blue cat a tree cat"s, DocumentStatus::IRRELEVANT, { 1 });
@@ -380,27 +426,45 @@ void TestPredicatStatus() {
     server.AddDocument(3, "apple tree int the garden"s, DocumentStatus::BANNED, { 1 });
     server.AddDocument(4, "operates on values of the same type"s, DocumentStatus::BANNED, { 8 });
     server.AddDocument(5, "cat on values of the same type"s, DocumentStatus::REMOVED, { 4 });
+    server.AddDocument(6, "cat like the underside  the big city"s, DocumentStatus::ACTUAL, { 9, 6 });
+    server.AddDocument(7, "only  cat a tree cat"s, DocumentStatus::IRRELEVANT, { 1 });
+    server.AddDocument(8, "almost  cat playing cat cat"s, DocumentStatus::REMOVED, { 3 });
+    server.AddDocument(9, "pattern tree int the garden"s, DocumentStatus::BANNED, { 1 });
 
+    //Проверка добавления всех документов с разными статусами
+    ASSERT_EQUAL_HINT(server.GetDocumentCount(), 10, "Documents with any status must be added");
+
+    //В базовый поисковый запрос должен попадать только статус ACTUAL
     const auto document = server.FindTopDocuments("apple cat"s);
-    ASSERT_EQUAL_HINT(document.size(), 2, "IRRELEVANT/BANNED/REMOVED docs must be excluded from the result"s);
+    ASSERT_EQUAL_HINT(document.size(), 3, "IRRELEVANT/BANNED/REMOVED docs must be excluded from the result"s);
 
-    const auto document1 = server.FindTopDocuments("the apple cat"s, DocumentStatus::BANNED);
-    ASSERT_EQUAL(document1.size(), 2);
+    //Проверка поиска со статусом BANNED
+    const auto document1 = server.FindTopDocuments("the apple cat garden"s, DocumentStatus::BANNED);
+    ASSERT_EQUAL(document1.size(), 3);
+    //Проверка поиска со статусом IRRELEVANT
+    const auto document2 = server.FindTopDocuments("the apple cat"s, DocumentStatus::IRRELEVANT);
+    ASSERT_EQUAL(document2.size(), 2);
+    //Проверка поиска со статусом REMOVED
+    const auto document3 = server.FindTopDocuments("the apple cat"s, DocumentStatus::REMOVED);
+    ASSERT_EQUAL(document3.size(), 2);
 
-    const auto document2 = server.FindTopDocuments("apple cat"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; });
-    ASSERT_EQUAL_HINT(document2.size(), 2, "Error using predicat status - document_id % 2");
+    const auto document4 = server.FindTopDocuments("apple cat"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 6 == 0; });
+    ASSERT_EQUAL_HINT(document4.size(), 2, "Error using predicate status - document_id % 6");
 
-    const auto document3 = server.FindTopDocuments("apple cat"s, [](int document_id, DocumentStatus status, int rating) { return rating > 5; });
-    ASSERT_EQUAL_HINT(document3.size(), 1, "Error using predicat status - rating > 5");
+    const auto document5 = server.FindTopDocuments("apple cat"s, [](int document_id, DocumentStatus status, int rating) { return rating > 5; });
+    ASSERT_EQUAL_HINT(document5.size(), 2, "Error using predicate status - rating > 5");
 }
 
 // Функция TestSearchServer является точкой входа для запуска тестов
 void TestSearchServer() {
+    RUN_TEST(TestAddDocument);
     RUN_TEST(TestExcludeStopWordsFromAddedDocumentContent);
     RUN_TEST(TestOneNoMinusWord);
     RUN_TEST(TestSortRelevance);
-    RUN_TEST(TestPredicatStatus);
-    // Не забудьте вызывать остальные тесты здесь
+    RUN_TEST(TestRatingAndRelevanceCount);
+    RUN_TEST(TestPredicateStatus);
+    
+    // 
 }
 
 
