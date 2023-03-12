@@ -89,20 +89,16 @@ public:
     template <typename StringContainer>
     explicit SearchServer(const StringContainer& stop_words)
         : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {
-        for (const auto& word : stop_words) {
-            if (!IsValidWord(word)) {
+
+        if (!all_of(stop_words.begin(), stop_words.end(), IsValidWord)) {
                 throw invalid_argument("Stop words contain spec chars");
-            }
-       }
+        }
     }
 
     explicit SearchServer(const string& stop_words_text)
         : SearchServer(
             SplitIntoWords(stop_words_text))  // Invoke delegating constructor from string container
     {
-        if (!IsValidWord(stop_words_text)) {
-            throw invalid_argument("Stop words contain spec chars");
-        }
     }
 
     void AddDocument(int document_id, const string& document, DocumentStatus status,
@@ -133,10 +129,6 @@ public:
 
     template <typename DocumentPredicate>
     vector<Document> FindTopDocuments(const string& raw_query, DocumentPredicate document_predicate) const {
-        if (!IsValidWord(raw_query)) {
-            throw invalid_argument("Search query contains spec chars");
-        }
-
         const Query query = ParseQuery(raw_query);
         auto matched_documents = FindAllDocuments(query, document_predicate);
 
@@ -161,9 +153,6 @@ public:
 
     tuple<vector<string>, DocumentStatus>  MatchDocument(const string& raw_query,
         int document_id) const {
-        if (!IsValidWord(raw_query)) {
-            throw invalid_argument("Search query contains spec chars");
-        }
         const Query query = ParseQuery(raw_query);
 
         vector<string> matched_words;
@@ -248,8 +237,11 @@ private:
             is_minus = true;
             text = text.substr(1);
         }
+        if (text.empty()) {
+            throw invalid_argument("Search query contains minus \"-\" with now adjacent word");
+        }
         if (text[0] == '-') {
-            throw invalid_argument("Search query contain double minus \"--\"");
+            throw invalid_argument("Search query contains double minus \"--\"");
         }
         return { text, is_minus, IsStopWord(text) };
     }
@@ -260,8 +252,8 @@ private:
     };
 
     Query ParseQuery(const string& text) const {
-        if (text.substr(text.length() - 2) == " -") {
-            throw invalid_argument("Search query contains minus at the end ");
+        if (!IsValidWord(text)) {
+            throw invalid_argument("Search query contains spec chars");
         }
 
         Query query;
