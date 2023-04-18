@@ -5,29 +5,7 @@
 #include "search_server.h"
 #include "string_processing.h"
 
-
 using namespace std;
-
-
-
-
-
-
-ostream& operator<<(ostream& out, Document doc) {
-    out << "{ document_id = "s << doc.id << ", relevance = "s << doc.relevance << ", rating = "s << doc.rating << " }"s;
-    return out;
-}
-template <typename Iterator>
-ostream& operator<<(ostream& out, IteratorRange<Iterator> irange) {
-    for (Iterator it = irange.begin(); it != irange.end(); ++it) {
-        out << *it;
-    }
-    return out;
-}
-
-
-
-
 
 int main() {
     SearchServer search_server("and in at"s);
