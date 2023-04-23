@@ -15,6 +15,30 @@ vector<int>::iterator SearchServer::end() {
     return document_ids_.end();
 }
 
+const map<string, double>& SearchServer::GetWordFrequencies(int document_id) const {
+    map<string, double> result;
+    int words_total{};
+    for (const auto& word : word_to_document_freqs_) {
+        if (word.second.find(document_id) != word.second.end()) {
+            result.insert({ word.first, word.second.at(document_id) });
+            words_total += word.second.at(document_id);
+        }
+    }
+    for (auto& word : result) {
+        word.second /= words_total;
+    }
+    return result;
+}
+
+void SearchServer::RemoveDocument(int document_id) {
+    documents_.erase(document_id);
+    document_ids_.erase(find(document_ids_.begin(), document_ids_.end(), document_id));
+    for (auto& word : word_to_document_freqs_) {
+        word.second.erase(document_id);
+    }
+
+}
+
 void SearchServer::AddDocument(int document_id, const string& document, DocumentStatus status,
     const vector<int>& ratings) {
     if ((document_id < 0) || (documents_.count(document_id) > 0)) {

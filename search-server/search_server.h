@@ -21,6 +21,10 @@ public:
     std::vector<int>::iterator begin();
     std::vector<int>::iterator end();
 
+    const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
+
+    void RemoveDocument(int document_id);
+
     void AddDocument(int document_id, const std::string& document, DocumentStatus status,
         const std::vector<int>& ratings);   
 

@@ -2,6 +2,7 @@
 
 void RemoveDuplicates(SearchServer& search_server) {
     for (const int document_id : search_server) {
-        document_id;
+        search_server.GetWordFrequencies(document_id)
+        search_server.RemoveDocument(document_id);
     }
 }
