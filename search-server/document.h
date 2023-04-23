@@ -16,3 +16,4 @@ enum class DocumentStatus {
     BANNED,
     REMOVED,
 };
+

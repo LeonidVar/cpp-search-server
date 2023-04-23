@@ -7,6 +7,14 @@ SearchServer::SearchServer(const string& stop_words_text)
     {
     }
 
+vector<int>::iterator SearchServer::begin() {
+    return  document_ids_.begin();
+}
+
+vector<int>::iterator SearchServer::end() {
+    return document_ids_.end();
+}
+
 void SearchServer::AddDocument(int document_id, const string& document, DocumentStatus status,
     const vector<int>& ratings) {
     if ((document_id < 0) || (documents_.count(document_id) > 0)) {
@@ -35,10 +43,6 @@ vector<Document> SearchServer::FindTopDocuments(const string& raw_query) const {
 
 int SearchServer::GetDocumentCount() const {
     return documents_.size();
-}
-
-int SearchServer::GetDocumentId(int index) const {
-    return document_ids_.at(index);
 }
 
 tuple<vector<string>, DocumentStatus> SearchServer::MatchDocument(const string& raw_query,

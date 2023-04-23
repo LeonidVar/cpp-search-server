@@ -17,6 +17,10 @@ public:
 
     explicit SearchServer(const std::string& stop_words_text);
 
+   
+    std::vector<int>::iterator begin();
+    std::vector<int>::iterator end();
+
     void AddDocument(int document_id, const std::string& document, DocumentStatus status,
         const std::vector<int>& ratings);   
 
@@ -29,8 +33,6 @@ public:
     std::vector<Document> FindTopDocuments(const std::string& raw_query) const;
 
     int GetDocumentCount() const;
-
-    int GetDocumentId(int index) const;
 
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query,
         int document_id) const;
