@@ -5,10 +5,11 @@
 #include "search_server.h"
 #include "string_processing.h"
 #include "log_duration.h"
+#include "remove_duplicates.h"
 
 using namespace std;
 
-void AddDocument(SearchServer search_server, int document_id, const std::string& document, DocumentStatus status,
+void AddDocument(SearchServer& search_server, int document_id, const std::string& document, DocumentStatus status,
     const std::vector<int>& ratings) {
     search_server.AddDocument(document_id, document, status, ratings);
 }
@@ -39,7 +40,7 @@ int main() {
 
     // слова из разных документов, не является дубликатом
     AddDocument(search_server, 9, "nasty rat with curly hair"s, DocumentStatus::ACTUAL, { 1, 2 });
-FileName
+
     cout << "Before duplicates removed: "s << search_server.GetDocumentCount() << endl;
     RemoveDuplicates(search_server);
     cout << "After duplicates removed: "s << search_server.GetDocumentCount() << endl;
