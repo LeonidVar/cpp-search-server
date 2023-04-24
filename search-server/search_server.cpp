@@ -16,16 +16,22 @@ set<int>::iterator SearchServer::end() {
 }
 
 const map<string, double>& SearchServer::GetWordFrequencies(int document_id) const {
-    return document_to_word_freqs_.at(document_id);
+    static map<string, double> result;
+    try {
+        result = document_to_word_freqs_.at(document_id);
+    }
+    catch (const out_of_range&) {
+    }
+    return result;
 }
 
 void SearchServer::RemoveDocument(int document_id) {
     documents_.erase(document_id);
     document_ids_.erase(find(document_ids_.begin(), document_ids_.end(), document_id));
-    document_to_word_freqs_.erase(document_id);
-    for (auto& word : word_to_document_freqs_) {
-        word.second.erase(document_id);
+    for (auto& [word, freqs] : document_to_word_freqs_[document_id]) {
+        word_to_document_freqs_[word].erase(document_id);
     }
+    document_to_word_freqs_.erase(document_id);
 }
 
 void SearchServer::AddDocument(int document_id, const string& document, DocumentStatus status,

@@ -44,4 +44,5 @@ int main() {
     cout << "Before duplicates removed: "s << search_server.GetDocumentCount() << endl;
     RemoveDuplicates(search_server);
     cout << "After duplicates removed: "s << search_server.GetDocumentCount() << endl;
+    search_server.GetWordFrequencies(111);
 }
