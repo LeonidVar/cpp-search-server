@@ -18,7 +18,7 @@ set<int>::iterator SearchServer::end() {
 const map<string, double>& SearchServer::GetWordFrequencies(int document_id) const {
     static map<string, double> result;
     if  (document_to_word_freqs_.count(document_id)) {
-        result = document_to_word_freqs_.at(document_id);
+        return document_to_word_freqs_.at(document_id);
     }
     return result;
 }
