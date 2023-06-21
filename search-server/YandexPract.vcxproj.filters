@@ -9,6 +9,8 @@
     <ClInclude Include="request_queue.h" />
     <ClInclude Include="search_server.h" />
     <ClInclude Include="string_processing.h" />
+    <ClInclude Include="test_framework.h" />
+    <ClInclude Include="process_queries.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="document.cpp" />
@@ -18,5 +20,6 @@
     <ClCompile Include="request_queue.cpp" />
     <ClCompile Include="search_server.cpp" />
     <ClCompile Include="string_processing.cpp" />
+    <ClCompile Include="process_queries.cpp" />
   </ItemGroup>
 </Project>

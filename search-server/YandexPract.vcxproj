@@ -22,15 +22,18 @@
     <ClInclude Include="document.h" />
     <ClInclude Include="log_duration.h" />
     <ClInclude Include="paginator.h" />
+    <ClInclude Include="process_queries.h" />
     <ClInclude Include="read_input_functions.h" />
     <ClInclude Include="remove_duplicates.h" />
     <ClInclude Include="request_queue.h" />
     <ClInclude Include="search_server.h" />
     <ClInclude Include="string_processing.h" />
+    <ClInclude Include="test_framework.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="document.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="process_queries.cpp" />
     <ClCompile Include="read_input_functions.cpp" />
     <ClCompile Include="remove_duplicates.cpp" />
     <ClCompile Include="request_queue.cpp" />
