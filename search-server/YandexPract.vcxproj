@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="concurrent_map.h" />
     <ClInclude Include="document.h" />
     <ClInclude Include="log_duration.h" />
     <ClInclude Include="paginator.h" />

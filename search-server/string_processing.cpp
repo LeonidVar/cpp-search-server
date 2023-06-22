@@ -1,7 +1,7 @@
 #include "string_processing.h"
 using namespace std;
 
-vector<string> SplitIntoWords(const string_view& text) {
+vector<string> SplitIntoWords(const string_view text) {
     vector<string> words;
     string word;
     for (const char c : text) {

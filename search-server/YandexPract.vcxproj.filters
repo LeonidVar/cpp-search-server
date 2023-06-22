@@ -11,6 +11,7 @@
     <ClInclude Include="string_processing.h" />
     <ClInclude Include="test_framework.h" />
     <ClInclude Include="process_queries.h" />
+    <ClInclude Include="concurrent_map.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="document.cpp" />
